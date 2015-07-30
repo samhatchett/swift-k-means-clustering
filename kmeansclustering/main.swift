@@ -59,6 +59,8 @@ class KMeansCluster {
   
   func findMeans(count:Int) -> Int {
     var iterations = 0
+    self.groups.removeAll(keepCapacity: false)
+    
     if self.points.count == 0 || count == 0 {
       return 0
     }
@@ -92,6 +94,38 @@ class KMeansCluster {
     }
     return iterations
   }
+  
+  
+  func findOptimalMeans(high:Int, tolerance:Double = 0.1) ->Int {
+    
+    if high <= 2 {
+      return 0
+    }
+    if self.points.count == 0 {
+      return 0
+    }
+    
+    var pctChange = 0.0
+    self.findMeans(1)
+    var prevSSE = self.sumSquaredErrors()
+    var optimalMeans = 0
+    
+    for i in 2...high {
+      let iter = self.findMeans(i)
+      let thisSSE = self.sumSquaredErrors()
+      pctChange = (prevSSE - thisSSE) / thisSSE
+      prevSSE = thisSSE
+      print("\(i) clusters: % change: \(pctChange)\n")
+      if pctChange >= 0 && pctChange <= tolerance {
+        optimalMeans = i
+        break;
+      }
+    }
+    return optimalMeans
+  }
+  
+  
+  
 }
 
 
@@ -103,17 +137,48 @@ class KMeansCluster {
 var clusterspace = KMeansCluster()
 
 for i in 1...1000 {
-  let x = Double(arc4random_uniform(1000))
-  let y = Double(arc4random_uniform(1000))
-  clusterspace.points.append(KMeansPoint(x: x, y: y))
+  let x = Double(arc4random_uniform(20))
+  let y = Double(arc4random_uniform(20))
+  clusterspace.points.append(KMeansPoint(x: x+10, y: y+200))
+}
+
+for i in 1...1000 {
+  let x = Double(arc4random_uniform(30))
+  let y = Double(arc4random_uniform(30))
+  clusterspace.points.append(KMeansPoint(x: x+300, y: y+20))
+}
+
+for i in 1...1000 {
+  let x = Double(arc4random_uniform(10))
+  let y = Double(arc4random_uniform(10))
+  clusterspace.points.append(KMeansPoint(x: x+200, y: y+200))
+}
+
+for i in 1...1000 {
+  let x = Double(arc4random_uniform(50))
+  let y = Double(arc4random_uniform(50))
+  clusterspace.points.append(KMeansPoint(x: x+1000, y: y+1000))
+}
+
+for i in 1...1000 {
+  let x = Double(arc4random_uniform(40))
+  let y = Double(arc4random_uniform(40))
+  clusterspace.points.append(KMeansPoint(x: x+200, y: y+1000))
+}
+
+for i in 1...10 {
+  let x = Double(arc4random_uniform(50))
+  let y = Double(arc4random_uniform(50))
+  clusterspace.points.append(KMeansPoint(x: x+2500, y: y+1500))
 }
 
 
-for k in 1...100 {
-  let iter = clusterspace.findMeans(k)
-  let sse = clusterspace.groups.map({$0.sumSquaredErrors()}).reduce(0, combine: +)
-  print("k = \(k) // iterations: \(iter)  //  SSE: \(sse) \n")
-}
+let opt = clusterspace.findOptimalMeans(20, tolerance: 0.01)
+
+let iter = clusterspace.findMeans(opt)
+let sse = clusterspace.groups.map({$0.sumSquaredErrors()}).reduce(0, combine: +)
+print("iterations: \(iter)  //  SSE: \(sse) \n")
+
 
 
 
